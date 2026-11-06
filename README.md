@@ -17,14 +17,15 @@ Il existe deux façons de l'utiliser :
 
 Elle fonctionne avec **Google Chrome**, **Microsoft Edge** et **Brave**, sur ordinateur (pas sur téléphone).
 
-### Étape 1 : télécharger l'outil
+### Étape 1 : télécharger l'extension
 
-1. En haut de cette page, clique sur le bouton vert **Code**.
-2. Clique sur **Download ZIP**.
-3. Ouvre le dossier **Téléchargements** de ton ordinateur.
-4. Fais un clic droit sur le fichier `instagram-followback-checker-main.zip`, puis **Extraire tout...** et **Extraire**.
+1. Clique sur ce lien : **[Télécharger l'extension](https://github.com/Rayane2L/instagram-followback-checker/releases/latest/download/follow-back-checker-extension.zip)**. Le fichier `follow-back-checker-extension.zip` se télécharge.
+2. Ouvre le dossier **Téléchargements** de ton ordinateur.
+3. Fais un clic droit sur `follow-back-checker-extension.zip`, puis **Extraire tout...** et **Extraire**.
 
-Tu obtiens un dossier `instagram-followback-checker-main`. Garde-le : si tu le supprimes, l'extension ne marchera plus.
+Tu obtiens un dossier `follow-back-checker-extension`. Garde-le, par exemple dans tes Documents : si tu le supprimes, l'extension ne marchera plus.
+
+Le lien ne marche pas ? Va dans la section **Releases** à droite de cette page, ouvre la dernière version et clique sur `follow-back-checker-extension.zip`.
 
 ### Étape 2 : installer l'extension
 
@@ -34,7 +35,7 @@ Tu obtiens un dossier `instagram-followback-checker-main`. Garde-le : si tu le s
    - Dans Chrome, il est en haut à droite.
    - Dans Edge, il est dans le menu de gauche.
 4. Clique sur le bouton **Charger l'extension non empaquetée**.
-5. Ouvre le dossier `instagram-followback-checker-main`, sélectionne le dossier **`extension`** qui se trouve dedans, puis clique sur **Sélectionner un dossier**.
+5. Sélectionne le dossier `follow-back-checker-extension` (celui qui contient le fichier `manifest.json`), puis clique sur **Sélectionner un dossier**.
 
 L'extension « Follow-back Checker » apparaît dans la liste. C'est installé.
 
@@ -73,7 +74,9 @@ Tu peux cliquer sur un pseudo pour ouvrir son profil, copier la liste ou l'expor
 
 ### Mettre à jour l'extension
 
-Télécharge à nouveau le ZIP (étape 1) et remplace l'ancien dossier. Ensuite, dans `chrome://extensions`, clique sur la flèche circulaire de « Follow-back Checker ».
+1. Télécharge et extrais le nouveau ZIP (étape 1).
+2. Remplace le contenu de ton ancien dossier `follow-back-checker-extension` par celui du nouveau.
+3. Dans `chrome://extensions`, clique sur la flèche circulaire de « Follow-back Checker ».
 
 ---
 
@@ -92,8 +95,9 @@ Avec cette méthode, Instagram te fournit lui-même tes données. C'est autoris�
 
 ### Étape 2 : voir le résultat
 
-1. Ouvre le fichier `index.html` du dossier téléchargé (double-clic).
-2. Fais glisser le ZIP d'Instagram dans le cadre de la page.
+1. Clique sur ce lien : **[Télécharger la page d'analyse](https://github.com/Rayane2L/instagram-followback-checker/releases/latest/download/follow-back-checker-export.html)**.
+2. Ouvre le fichier `follow-back-checker-export.html` téléchargé (double-clic). Il s'ouvre dans ton navigateur.
+3. Fais glisser le ZIP d'Instagram dans le cadre de la page.
 
 La page fonctionne sans Internet et n'envoie rien.
 
@@ -127,6 +131,14 @@ node --test tests/checker.test.js tests/extension.test.js
 Il y a une pause aléatoire de 0,9 à 1,9 s entre les pages. L'analyse s'arrête dès qu'Instagram limite les requêtes (HTTP 429), demande une connexion ou refuse l'accès à un compte privé, et n'affiche alors aucun résultat partiel.
 
 **Page export.** Le ZIP est lu par morceaux avec un petit lecteur ZIP intégré (ZIP64 compris). Seuls les fichiers followers et following sont décompressés, avec `DecompressionStream`. La page interdit toute connexion réseau (`Content-Security-Policy: connect-src 'none'`).
+
+**Nouvelle version.** Augmente `version` dans `extension/manifest.json`, puis crée une release avec les deux fichiers, sous ces noms exacts (les liens du README pointent vers `releases/latest/download/...`) :
+
+```bash
+git archive -o follow-back-checker-extension.zip HEAD:extension
+cp index.html follow-back-checker-export.html
+gh release create v1.0.1 follow-back-checker-extension.zip follow-back-checker-export.html --title "v1.0.1"
+```
 
 **Publication.** Une fois le dépôt public, GitHub Pages (Settings, Pages, branche `main`) peut héberger `index.html`. Pour éviter le mode développeur, l'extension peut être publiée sur le Chrome Web Store, mais elle risque d'y être refusée parce qu'elle utilise l'API interne d'Instagram.
 
