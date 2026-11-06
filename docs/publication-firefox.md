@@ -1,5 +1,7 @@
 # Publier l'extension sur Firefox (ordinateur et Android)
 
+> **Statut : en cours de développement.** La version Firefox (ordinateur et Android) n'est pas encore testée ni publiée. La version Chrome / Edge reste la version de référence.
+
 Sur Android, Firefox n'installe que les extensions publiées sur addons.mozilla.org (AMO). La publication est gratuite. Mozilla vérifie chaque extension avant de la mettre en ligne : compte de quelques heures à quelques jours.
 
 Le même fichier `follow-back-checker-extension.zip` sert pour Chrome et pour Firefox.
