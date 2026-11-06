@@ -43,18 +43,40 @@
     if (!res.json) fail("unexpected", "HTTP " + res.status);
   }
 
+  /** "1,234" → 1234 ; "12.5K" → 12500 ; "686M" → 686000000 ; "1 234" → 1234. Approximatif, sert à la barre de progression. */
+  function parseCount(s) {
+    const m = String(s || "").replace(/[\s  ]/g, "").match(/^([\d.,]+)([kKmM]?)$/);
+    if (!m) return 0;
+    if (m[2]) {
+      const n = parseFloat(m[1].replace(",", "."));
+      return Math.round(n * (/k/i.test(m[2]) ? 1e3 : 1e6));
+    }
+    return parseInt(m[1].replace(/[.,]/g, ""), 10) || 0;
+  }
+
+  /**
+   * Retrouve l'identifiant numérique d'un compte à partir de sa page de profil publique.
+   * (L'ancien point d'accès /api/v1/users/web_profile_info/ renvoie 404 depuis fin 2026.)
+   */
   async function getProfile(igFetch, username) {
-    const res = await igFetch(BASE + "/api/v1/users/web_profile_info/?username=" + encodeURIComponent(username));
-    checkResponse(res);
-    const user = res.json.data && res.json.data.user;
-    if (!user) fail("notFound");
+    const res = await igFetch(BASE + "/" + encodeURIComponent(username) + "/", { asText: true });
+    if (!res || res.status === 0) fail("network", res && res.error);
+    if (res.status === 429) fail("rateLimit");
+    if (res.redirectedToLogin) fail("login");
+    if (res.status === 404) fail("notFound");
+    const html = String(res.text || "");
+    const idMatch = html.match(/"profile_id":"(\d+)"/) || html.match(/"profilePage_(\d+)"/);
+    if (!idMatch) fail("notFound");
+
+    // Compteurs approximatifs depuis la description (ex. "686M followers, 168 suivis, ...").
+    const og = (html.match(/<meta property="og:description" content="([^"]*)"/) || [])[1] || "";
+    const counts = og.match(/^\s*([\d.,\s  kKmM]+?)\s*[^\d\s,]+,\s*([\d.,\s  kKmM]+?)\s*[^\d\s,]+/);
+
     return {
-      id: String(user.id),
-      username: user.username,
-      fullName: user.full_name || "",
-      isPrivate: !!user.is_private,
-      followerCount: (user.edge_followed_by && user.edge_followed_by.count) || 0,
-      followingCount: (user.edge_follow && user.edge_follow.count) || 0,
+      id: idMatch[1],
+      username,
+      followerCount: counts ? parseCount(counts[1]) : 0,
+      followingCount: counts ? parseCount(counts[2]) : 0,
     };
   }
 
@@ -128,7 +150,7 @@
     return { profile, ...compare(followers, following) };
   }
 
-  const api = { run, getProfile, fetchList, compare, normalizeUsername, CheckerError, MESSAGES };
+  const api = { run, getProfile, fetchList, compare, normalizeUsername, parseCount, CheckerError, MESSAGES };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.FollowbackLib = api;
 })(typeof self !== "undefined" ? self : this);

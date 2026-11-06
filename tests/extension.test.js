@@ -13,10 +13,13 @@ function fakeInstagram({ followers, following, pageSize = 2, overrides = {} }) {
     calls.push(url);
     const u = new URL(url);
     for (const [pattern, res] of Object.entries(overrides)) if (url.includes(pattern)) return res;
-    if (u.pathname === "/api/v1/users/web_profile_info/") {
-      return { status: 200, json: { data: { user: {
-        id: "42", username: u.searchParams.get("username"), is_private: false,
-        edge_followed_by: { count: followers.length }, edge_follow: { count: following.length } } } } };
+    // Page de profil HTML, au format observé sur instagram.com en novembre 2026.
+    const profile = u.pathname.match(/^\/([a-z0-9._]+)\/$/);
+    if (profile && profile[1] !== "api") {
+      return { status: 200, text:
+        '<html><head><meta property="og:description" content="' + followers.length + ' followers, ' +
+        following.length + ' suivis, 12 publications - Voir les photos (&#064;' + profile[1] + ')" />' +
+        '</head><body><script>{"page_id":"profilePage_42","profile_id":"42"}</script></body></html>' };
     }
     const m = u.pathname.match(/^\/api\/v1\/friendships\/42\/(followers|following)\/$/);
     if (m) {
@@ -61,11 +64,13 @@ test("fait une pause entre les pages", async () => {
 });
 
 const errorCases = [
-  ["compte introuvable", { "web_profile_info": { status: 404, json: null } }, "notFound"],
+  ["compte introuvable", { "instagram.com/moi/": { status: 404, text: "" } }, "notFound"],
+  ["page sans identifiant", { "instagram.com/moi/": { status: 200, text: "<html></html>" } }, "notFound"],
   ["pas connecté", { "/following/": { status: 200, json: null, redirectedToLogin: true } }, "login"],
   ["limite de requêtes", { "/following/": { status: 429, json: { message: "Please wait a few minutes before you try again." } } }, "rateLimit"],
   ["compte privé", { "/following/": { status: 400, json: { message: "Not authorized to view user", status: "fail" } } }, "private"],
-  ["réseau", { "web_profile_info": { status: 0, error: "Failed to fetch" } }, "network"],
+  ["réseau", { "instagram.com/moi/": { status: 0, error: "Failed to fetch" } }, "network"],
+  ["pas connecté (profil)", { "instagram.com/moi/": { status: 200, text: "", redirectedToLogin: true } }, "login"],
 ];
 for (const [name, overrides, code] of errorCases) {
   test("erreur claire : " + name, async () => {
@@ -80,4 +85,21 @@ test("peut être annulé", async () => {
   await assert.rejects(
     L.fetchList(igFetch, "42", "following", { sleep: async () => ctrl.abort(), signal: ctrl.signal }),
     { code: "aborted" });
+});
+
+test("lit les compteurs approximatifs du profil", () => {
+  assert.equal(L.parseCount("686M"), 686000000);
+  assert.equal(L.parseCount("12,5K"), 12500);
+  assert.equal(L.parseCount("12.5k"), 12500);
+  assert.equal(L.parseCount("1,234"), 1234);
+  assert.equal(L.parseCount("1 234"), 1234);
+  assert.equal(L.parseCount("168"), 168);
+});
+
+test("récupère l'identifiant et les compteurs depuis la page de profil", async () => {
+  const igFetch = async () => ({ status: 200, text:
+    '<meta property="og:description" content="686M followers, 168 suivis, 8,636 publications - Voir (&#064;instagram)" />' +
+    '"page_id":"profilePage_25025320","profile_id":"25025320"' });
+  const p = await L.getProfile(igFetch, "instagram");
+  assert.deepEqual(p, { id: "25025320", username: "instagram", followerCount: 686000000, followingCount: 168 });
 });

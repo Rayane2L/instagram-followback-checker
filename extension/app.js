@@ -16,16 +16,18 @@
   // ---------------------------------------------------------------------------
 
   // Cette fonction est injectée telle quelle dans l'onglet Instagram.
-  async function fetchInPage(url) {
+  async function fetchInPage(url, asText) {
     try {
       const r = await fetch(url, {
         credentials: "include",
-        headers: { "X-IG-App-ID": "936619743392459", "X-Requested-With": "XMLHttpRequest" },
+        headers: asText ? {} : { "X-IG-App-ID": "936619743392459", "X-Requested-With": "XMLHttpRequest" },
       });
       const text = await r.text();
+      const redirectedToLogin = r.redirected && /\/accounts\/login/.test(r.url);
+      if (asText) return { status: r.status, text, redirectedToLogin };
       let json = null;
       try { json = JSON.parse(text); } catch {}
-      return { status: r.status, json, redirectedToLogin: r.redirected && /\/accounts\/login/.test(r.url) };
+      return { status: r.status, json, redirectedToLogin };
     } catch (e) {
       return { status: 0, error: String(e) };
     }
@@ -50,8 +52,8 @@
   }
 
   function makeIgFetch(tabId) {
-    return async (url) => {
-      const [res] = await chrome.scripting.executeScript({ target: { tabId }, func: fetchInPage, args: [url] });
+    return async (url, opts = {}) => {
+      const [res] = await chrome.scripting.executeScript({ target: { tabId }, func: fetchInPage, args: [url, !!opts.asText] });
       return res && res.result;
     };
   }
@@ -69,11 +71,17 @@
       $("progressText").textContent = "Recherche du compte…";
       return;
     }
-    const totalAll = (ev.profile.followingCount + ev.profile.followerCount) || 1;
+    // Les totaux viennent de la page de profil : ils peuvent être arrondis (« 12,5K ») ou absents.
+    const totalAll = ev.profile.followingCount + ev.profile.followerCount;
+    if (!totalAll) {
+      $("barFill").style.width = ev.step === "followers" ? "60%" : "30%";
+      $("progressText").textContent = STEP_LABEL[ev.step] + " : " + ev.done + " comptes chargés";
+      return;
+    }
     const before = ev.step === "followers" ? ev.profile.followingCount : 0;
-    const pct = Math.min(100, Math.round(((before + ev.done) / totalAll) * 100));
+    const pct = Math.min(99, Math.round(((before + ev.done) / totalAll) * 100));
     $("barFill").style.width = Math.max(2, pct) + "%";
-    $("progressText").textContent = STEP_LABEL[ev.step] + " : " + ev.done + " / " + ev.total + " (" + pct + " %)";
+    $("progressText").textContent = STEP_LABEL[ev.step] + " : " + ev.done + " / environ " + Math.max(ev.total, ev.done) + " (" + pct + " %)";
   }
 
   function setRunning(running) {

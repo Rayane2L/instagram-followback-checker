@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Follow-back Checker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Liste les comptes Instagram que tu suis et qui ne te suivent pas en retour. Tout reste dans ton navigateur.",
   "permissions": ["scripting"],
   "host_permissions": ["https://www.instagram.com/*"],

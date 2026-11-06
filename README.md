@@ -124,7 +124,7 @@ node --test tests/checker.test.js tests/extension.test.js
 
 **Extension.** `lib.js` ne dépend pas du navigateur : il reçoit une fonction `igFetch(url)`. `app.js` l'implémente avec `chrome.scripting.executeScript` dans un onglet instagram.com, ce qui réutilise la session existante. Si aucun onglet Instagram n'est ouvert, l'extension en ouvre un en arrière-plan puis le referme. Points d'accès utilisés :
 
-- `GET /api/v1/users/web_profile_info/?username=...` : identifiant et compteurs
+- `GET /{pseudo}/` (page de profil publique) : identifiant (`"profile_id"`) et compteurs approximatifs (balise `og:description`). L'ancien point d'accès `/api/v1/users/web_profile_info/` renvoie 404 depuis novembre 2026.
 - `GET /api/v1/friendships/{id}/following/?count=50&max_id=...`
 - `GET /api/v1/friendships/{id}/followers/?count=50&max_id=...`
 
