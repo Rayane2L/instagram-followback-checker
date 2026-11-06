@@ -46,7 +46,7 @@ ul#list li { display: flex; justify-content: space-between; align-items: center;
 ul#list a { color: var(--accent); text-decoration: none; word-break: break-all; font-weight: 600; }
 ul#list a:hover { text-decoration: underline; }
 ul#list .name { color: var(--muted); font-size: .9rem; text-align: right; }
-.badge { color: #1d9bf0; margin-left: 4px; }
+.badge { color: var(--muted); font-size: .8rem; border: 1px solid var(--border); border-radius: 999px; padding: 0 8px; margin-left: 6px; }
 .empty { color: var(--muted); justify-content: center !important; }
 details summary { cursor: pointer; font-weight: 600; }
 details ul { padding-left: 20px; margin-bottom: 0; }

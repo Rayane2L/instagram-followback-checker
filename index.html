@@ -78,7 +78,7 @@
       <small>ou clique pour le choisir (tu peux aussi sélectionner directement les fichiers followers_*.json et following.json)</small>
     </div>
     <input id="file" type="file" accept=".zip,.json,application/zip,application/json" multiple hidden>
-    <p class="privacy">🔒 Tout est analysé dans ton navigateur. Aucune donnée n'est envoyée sur Internet, aucun mot de passe n'est demandé.</p>
+    <p class="privacy">Tout est analysé dans ton navigateur. Aucune donnée n'est envoyée sur Internet, aucun mot de passe n'est demandé.</p>
     <p id="status" role="status"></p>
   </div>
 
@@ -327,7 +327,7 @@
     try {
       const entries = await FollowbackChecker.collectJsonFiles(files);
       result = FollowbackChecker.analyze(entries);
-      setStatus("Analyse terminée ✔", "ok");
+      setStatus("Analyse terminée.", "ok");
       render();
     } catch (e) {
       console.error(e);
@@ -348,7 +348,7 @@
     if (!items.length) {
       const li = document.createElement("li");
       li.className = "empty";
-      li.textContent = q ? "Aucun résultat pour ce filtre." : "Personne dans cette liste 🎉";
+      li.textContent = q ? "Aucun résultat pour ce filtre." : "Personne dans cette liste.";
       list.append(li);
       return;
     }
@@ -386,7 +386,7 @@
 
   $("copy").addEventListener("click", async () => {
     const text = result[view].map((u) => "@" + u.username).join("\n");
-    try { await navigator.clipboard.writeText(text); setStatus("Liste copiée dans le presse-papiers ✔", "ok"); }
+    try { await navigator.clipboard.writeText(text); setStatus("Liste copiée dans le presse-papiers.", "ok"); }
     catch { setStatus("Copie impossible dans ce navigateur.", "err"); }
   });
   $("csv").addEventListener("click", () => {

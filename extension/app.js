@@ -92,7 +92,7 @@
       created = ig.created; tabId = ig.tab.id;
       result = await run(makeIgFetch(tabId), input.value, { onStep: showProgress, signal: controller.signal });
       try { localStorage.setItem("lastUsername", result.profile.username); } catch {}
-      setStatus("Analyse terminée ✔", "ok");
+      setStatus("Analyse terminée.", "ok");
       render();
     } catch (err) {
       console.error(err);
@@ -130,7 +130,7 @@
     if (!items.length) {
       const li = document.createElement("li");
       li.className = "empty";
-      li.textContent = "Personne dans cette liste 🎉";
+      li.textContent = "Personne dans cette liste.";
       list.append(li);
       return;
     }
@@ -144,7 +144,7 @@
       left.append(a);
       if (u.isVerified) {
         const b = document.createElement("span");
-        b.className = "badge"; b.title = "Compte certifié"; b.textContent = "✔";
+        b.className = "badge"; b.textContent = "certifié";
         left.append(b);
       }
       const name = document.createElement("span");
@@ -166,7 +166,7 @@
   $("copy").addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(currentItems().map((u) => "@" + u.username).join("\n"));
-      setStatus("Liste copiée dans le presse-papiers ✔", "ok");
+      setStatus("Liste copiée dans le presse-papiers.", "ok");
     } catch { setStatus("Copie impossible.", "err"); }
   });
 
