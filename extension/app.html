@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Follow-back Checker</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main>
+  <h1>Follow-back Checker</h1>
+  <p class="sub">Qui tu suis sur Instagram sans qu'il ou elle te suive en retour.</p>
+
+  <form class="card" id="form" autocomplete="off">
+    <label for="username">Pseudo Instagram</label>
+    <div class="row">
+      <input id="username" name="username" type="text" placeholder="ex. : ton_pseudo" spellcheck="false" autocapitalize="off" required>
+      <button id="go" type="submit">Analyser</button>
+      <button id="stop" type="button" class="secondary" hidden>Arrêter</button>
+    </div>
+    <p class="hint">Il faut être connecté·e à instagram.com dans ce navigateur. Tout reste sur ton ordinateur : l'extension ne parle qu'à Instagram.</p>
+    <div id="progress" hidden>
+      <div class="bar"><div id="barFill"></div></div>
+      <p id="progressText"></p>
+    </div>
+    <p id="status" role="status"></p>
+  </form>
+
+  <div class="card" id="results" hidden>
+    <h2 id="resultsTitle"></h2>
+    <div class="stats">
+      <div class="stat"><b id="nFollowing">0</b><span>Abonnements</span></div>
+      <div class="stat"><b id="nFollowers">0</b><span>Abonnés</span></div>
+      <div class="stat"><b id="nNotBack">0</b><span>Ne suivent pas en retour</span></div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-view="notBack" aria-selected="true">Ne suivent pas en retour</button>
+      <button type="button" role="tab" data-view="fans" aria-selected="false">Pas suivis en retour</button>
+      <button type="button" role="tab" data-view="mutual" aria-selected="false">Mutuels</button>
+    </div>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Filtrer par nom…" aria-label="Filtrer la liste">
+      <label class="check"><input id="hideVerified" type="checkbox"> Masquer les comptes certifiés</label>
+      <div class="actions">
+        <button id="copy" type="button" class="secondary">Copier</button>
+        <button id="csv" type="button" class="secondary">Exporter CSV</button>
+      </div>
+    </div>
+    <ul id="list"></ul>
+  </div>
+
+  <details class="card">
+    <summary>⚠️ À savoir avant d'utiliser</summary>
+    <ul>
+      <li>L'extension utilise l'API interne du site Instagram, comme le ferait ton navigateur en faisant défiler la liste. Ce n'est pas autorisé par les conditions d'utilisation d'Instagram.</li>
+      <li>Pour limiter les risques, elle fait une pause d'environ 1 à 2 secondes entre chaque page de 50 comptes. Évite de l'utiliser plusieurs fois d'affilée : Instagram peut temporairement limiter ton compte.</li>
+      <li>Pour une méthode sans aucun risque, utilise la page « export officiel » fournie dans le même projet.</li>
+    </ul>
+  </details>
+
+  <footer>Open source, licence MIT. Non affilié à Instagram ou Meta.</footer>
+</main>
+<script src="lib.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

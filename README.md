@@ -1,59 +1,106 @@
 # Instagram Follow-back Checker
 
-Découvre **qui tu suis sur Instagram sans qu'il ou elle te suive en retour** — sans mot de passe, sans installation, sans envoyer tes données nulle part.
+Découvre **qui tu suis sur Instagram sans qu'il ou elle te suive en retour**, sans mot de passe à donner et sans envoyer tes données à un service tiers.
 
-L'outil est une simple page web (`index.html`) qui lit l'**export officiel de tes données Instagram** directement dans ton navigateur.
+Deux méthodes au choix :
 
-## ✨ Fonctionnalités
+| | 🧩 Extension navigateur | 📦 Page « export officiel » |
+|---|---|---|
+| Utilisation | Tu tapes un pseudo, c'est tout | Tu demandes ton export à Instagram, puis tu le déposes dans la page |
+| Rapidité | Résultat en quelques secondes / minutes | Attente de l'export (minutes à heures) |
+| Installation | Extension Chrome / Edge | Aucune (un fichier HTML) |
+| Respect des CGU Instagram | ❌ Non (API interne du site) | ✅ Oui |
+| Risque pour le compte | Faible mais réel (limitation temporaire) | Aucun |
+| Analyser un autre compte | ✅ (public, ou privé que tu suis) | ❌ Seulement le tien |
 
-- Liste des comptes qui **ne te suivent pas en retour**
-- Liste des comptes qui te suivent mais **que tu ne suis pas**
-- Liste des **abonnements mutuels**
-- Recherche, lien direct vers chaque profil, date de l'abonnement
-- Copie de la liste ou export en **CSV** (ouvrable dans Excel)
-- Clair / sombre automatique, fonctionne sur ordinateur et mobile
+## ✨ Fonctionnalités (les deux méthodes)
 
-## 🔒 Confidentialité et sécurité
+- Comptes qui **ne te suivent pas en retour**
+- Comptes qui te suivent mais **que tu ne suis pas**
+- **Abonnements mutuels**
+- Recherche, lien direct vers chaque profil
+- Copie de la liste ou export **CSV** (ouvrable dans Excel)
+- Thème clair / sombre automatique
 
-- **Aucun identifiant demandé.** L'outil ne se connecte jamais à Instagram.
-- **Aucune donnée envoyée.** Tout est calculé localement dans ton navigateur. La page bloque même toute connexion réseau (en-tête `Content-Security-Policy` avec `connect-src 'none'`).
-- **Respect des CGU d'Instagram.** On utilise uniquement la fonction officielle « Télécharger vos informations » : pas de scraping, pas d'automatisation, aucun risque de blocage du compte.
-- **Aucune dépendance externe.** Un seul fichier HTML lisible, sans bibliothèque tierce ni CDN.
+Extension uniquement : nom affiché, badge « certifié » et option pour **masquer les comptes certifiés** (célébrités, marques…).
 
-## 🚀 Utilisation
+---
+
+## 🧩 Méthode 1 : l'extension (automatique)
+
+### Installation (Chrome, Edge, Brave…)
+
+1. Télécharge ce projet : bouton vert **Code** → **Download ZIP**, puis décompresse-le.
+2. Ouvre `chrome://extensions` (ou `edge://extensions`).
+3. Active le **Mode développeur** (interrupteur en haut à droite ; en bas à gauche dans Edge).
+4. Clique sur **Charger l'extension non empaquetée** et choisis le dossier **`extension`** du projet.
+5. Épingle l'extension (icône puzzle 🧩 → punaise) pour l'avoir sous la main.
+
+### Utilisation
+
+1. Connecte-toi à [instagram.com](https://www.instagram.com) dans ce navigateur (une seule fois).
+2. Clique sur l'icône de l'extension : une page s'ouvre.
+3. Tape ton pseudo (ou colle le lien de ton profil) puis **Analyser**.
+4. Patiente pendant le chargement des listes : environ 1 à 2 secondes par tranche de 50 comptes (≈ 1 min pour 1 000 abonnés + abonnements).
+
+### Comment ça marche, et pourquoi c'est privé
+
+- L'extension n'a **qu'une seule autorisation de site : `instagram.com`**. Elle ne peut rien envoyer ailleurs : pas de serveur, pas de statistiques, pas de pub.
+- Les requêtes sont exécutées **dans un onglet instagram.com**, avec ta session déjà ouverte, exactement comme quand tu fais défiler ta liste d'abonnés. Si aucun onglet Instagram n'est ouvert, l'extension en ouvre un en arrière-plan puis le referme.
+- **Ton mot de passe n'est jamais demandé ni lu.**
+- Le code tient en quelques centaines de lignes, sans bibliothèque externe : n'importe qui peut le relire dans le dossier [`extension/`](extension/).
+
+### ⚠️ Limites et précautions
+
+- Cette méthode utilise l'API interne du site web d'Instagram : **ce n'est pas autorisé par ses conditions d'utilisation**. Elle fait des pauses aléatoires entre les pages pour rester discrète, mais **évite de l'enchaîner** plusieurs fois de suite, et évite les comptes énormes (des dizaines de milliers d'abonnés).
+- Si Instagram répond « patiente quelques minutes », arrête et réessaie plus tard (voire le lendemain).
+- Instagram peut changer son site à tout moment ; l'extension peut alors cesser de fonctionner jusqu'à une mise à jour. La méthode 2 continuera de marcher.
+
+---
+
+## 📦 Méthode 2 : la page « export officiel » (zéro risque)
+
+Le fichier [`index.html`](index.html) lit l'**export officiel de tes données Instagram**, entièrement dans ton navigateur. La page bloque même toute connexion réseau (`Content-Security-Policy: connect-src 'none'`).
 
 ### 1. Demander l'export à Instagram
 
-1. Dans l'application ou sur instagram.com : **Paramètres** → **Espace comptes** → **Vos informations et autorisations** → **Télécharger vos informations**.
-2. **Télécharger ou transférer des informations** → choisis ton compte Instagram → **Certaines de vos informations**.
+1. **Paramètres** → **Espace comptes** → **Vos informations et autorisations** → **Télécharger vos informations**.
+2. **Télécharger ou transférer des informations** → ton compte Instagram → **Certaines de vos informations**.
 3. Coche uniquement **Followers et suivis** (section *Connexions*).
 4. **Télécharger sur l'appareil**, période **Depuis le début**, format **JSON** ⚠️ (pas HTML).
-5. Valide. Instagram t'envoie un e-mail quand le fichier est prêt (de quelques minutes à quelques heures). Télécharge le **ZIP**.
+5. Instagram t'envoie un e-mail quand c'est prêt. Télécharge le **ZIP**.
 
 ### 2. Analyser
 
-1. Télécharge le fichier [`index.html`](index.html) de ce dépôt (bouton *Download raw file*) et ouvre-le dans ton navigateur (Chrome, Edge, Firefox, Safari récents).
-2. Glisse-dépose le ZIP dans la zone prévue (ou clique pour le choisir).
-3. Les résultats s'affichent immédiatement.
+1. Télécharge [`index.html`](index.html) (bouton *Download raw file*) et ouvre-le dans ton navigateur.
+2. Glisse-dépose le ZIP dans la zone prévue.
 
-> Tu peux aussi décompresser le ZIP et sélectionner directement `followers_1.json` (et `followers_2.json`… s'il y en a) **et** `following.json`, situés dans `connections/followers_and_following/`.
+> Tu peux aussi décompresser le ZIP et sélectionner `followers_1.json` (+ `followers_2.json`… s'il y en a) **et** `following.json`, dans `connections/followers_and_following/`.
+
+---
 
 ## ❓ Questions fréquentes
 
-**« Ton export est au format HTML »** — Refais la demande d'export en choisissant **JSON**.
+**« Tu n'es pas connecté·e à Instagram »** (extension) : ouvre instagram.com dans le même navigateur et connecte-toi.
 
-**« Aucun fichier followers/following trouvé »** — Lors de l'export, la catégorie *Followers et suivis* n'était pas cochée.
+**« Ce compte est privé »** (extension) : on ne peut analyser un compte privé que si tu le suis (ou si c'est le tien).
 
-**Un compte apparaît alors qu'il me suit** — L'export est une photo à l'instant T : s'il t'a suivi après la demande d'export, il n'y figure pas. Les comptes désactivés ou supprimés peuvent aussi apparaître.
+**« Ton export est au format HTML »** (page) : refais la demande d'export en choisissant **JSON**.
 
-**Les résultats sont-ils fiables ?** — Ils reflètent exactement les données fournies par Instagram dans l'export.
+**Un compte apparaît alors qu'il me suit** : comptes désactivés temporairement, ou (méthode 2) abonnement fait après la date de l'export.
 
 ## 🛠️ Pour les développeurs
 
 ```
 .
-├── index.html          # L'outil complet (interface + logique dans <script id="checker">)
-├── example/            # Faux export Instagram pour tester
+├── extension/          # Extension Chrome/Edge (Manifest V3)
+│   ├── manifest.json   #   autorisations : scripting + instagram.com uniquement
+│   ├── background.js   #   ouvre app.html au clic sur l'icône
+│   ├── app.html/.css/.js   interface + exécution des requêtes dans l'onglet Instagram
+│   ├── lib.js          #   logique pure : profil, pagination, comparaison, erreurs
+│   └── icons/
+├── index.html          # Page « export officiel » (interface + logique dans <script id="checker">)
+├── example/            # Faux export Instagram pour tester la page
 ├── tests/              # Tests unitaires (Node.js ≥ 20, sans dépendance)
 ├── LICENSE
 └── README.md
@@ -62,20 +109,24 @@ L'outil est une simple page web (`index.html`) qui lit l'**export officiel de te
 Lancer les tests :
 
 ```bash
-node --test tests/checker.test.js
+node --test tests/checker.test.js tests/extension.test.js
 ```
 
-Pour essayer l'interface sans vrai export : sélectionne les deux fichiers de `example/connections/followers_and_following/`.
+### Détails techniques
 
-### Fonctionnement
+**Extension.** `lib.js` est indépendant du navigateur : il reçoit une fonction `igFetch(url)`. Dans l'extension, `app.js` l'implémente avec `chrome.scripting.executeScript` dans un onglet `instagram.com` (même origine, cookies de session inclus). Points d'accès utilisés :
+- `GET /api/v1/users/web_profile_info/?username=…` → identifiant et compteurs
+- `GET /api/v1/friendships/{id}/following/?count=50&max_id=…`
+- `GET /api/v1/friendships/{id}/followers/?count=50&max_id=…`
 
-1. Le ZIP est lu par morceaux (`Blob.slice`) avec un petit lecteur ZIP maison (ZIP64 compris) : seuls `followers_*.json` et `following.json` sont extraits et décompressés via l'API native `DecompressionStream`. Les gros exports (avec photos) ne sont donc pas chargés en mémoire.
-2. Les pseudos sont extraits en gérant les différents formats d'export Instagram (`string_list_data[].value`, `title` ou URL `href`).
-3. Comparaison par ensembles : *abonnements* − *abonnés* = ceux qui ne te suivent pas en retour.
+Pause aléatoire de 0,9 à 1,9 s entre les pages, arrêt immédiat en cas de limitation (HTTP 429), de déconnexion ou de compte privé. Les tests utilisent un faux Instagram ([`tests/extension.test.js`](tests/extension.test.js)).
 
-### Publier l'outil
+**Page export.** Le ZIP est lu par morceaux (`Blob.slice`) avec un petit lecteur ZIP maison (ZIP64 compris) : seuls les fichiers followers/following sont décompressés (`DecompressionStream`). Les différents formats d'export Instagram sont gérés (`string_list_data[].value`, `title` ou `href`).
 
-Une fois le dépôt public, l'outil peut être mis en ligne gratuitement via **GitHub Pages** (*Settings → Pages → Deploy from branch → main / root*) : tes proches n'auront plus qu'à ouvrir un lien.
+### Publier
+
+- **Page export** : une fois le dépôt public, GitHub Pages (*Settings → Pages → Deploy from branch → main / root*) donne un lien direct à partager.
+- **Extension** : pour éviter le mode développeur, elle peut être publiée sur le Chrome Web Store (compte développeur, 5 $ une fois). Une extension qui utilise l'API interne d'Instagram risque toutefois d'être refusée.
 
 ## 📄 Licence
 
