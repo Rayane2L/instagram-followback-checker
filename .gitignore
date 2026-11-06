@@ -1,0 +1,7 @@
+# Ne jamais committer de vrais exports Instagram (données personnelles)
+*.zip
+instagram-*/
+meta-*/
+node_modules/
+.DS_Store
+Thumbs.db

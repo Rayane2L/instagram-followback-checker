@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'">
+<title>Follow-back Checker</title>
+<style>
+  :root {
+    --bg: #fafafa; --card: #ffffff; --text: #1a1a1a; --muted: #666;
+    --border: #e2e2e2; --accent: #d62976; --accent-soft: #fde7f0; --ok: #1a7f37; --err: #b42318;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212; --card: #1e1e1e; --text: #ececec; --muted: #a0a0a0;
+      --border: #333; --accent: #f06aa5; --accent-soft: #3a1f2c; --ok: #4ac26b; --err: #ff8a80;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  details summary { cursor: pointer; font-weight: 600; }
+  ol { padding-left: 20px; } li { margin: 4px 0; }
+  #drop { border: 2px dashed var(--border); border-radius: 12px; padding: 32px 16px; text-align: center; cursor: pointer; transition: .15s; }
+  #drop.over, #drop:hover { border-color: var(--accent); background: var(--accent-soft); }
+  #drop strong { display: block; font-size: 1.1rem; margin-bottom: 4px; }
+  #drop small { color: var(--muted); }
+  .privacy { font-size: .9rem; color: var(--muted); margin-top: 12px; }
+  #status { margin: 12px 0 0; min-height: 1.5em; }
+  #status.err { color: var(--err); } #status.ok { color: var(--ok); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .stat { text-align: center; padding: 12px 4px; border: 1px solid var(--border); border-radius: 10px; }
+  .stat b { display: block; font-size: 1.5rem; }
+  .stat span { font-size: .8rem; color: var(--muted); }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tabs button, .actions button { font: inherit; border: 1px solid var(--border); background: var(--card); color: var(--text);
+         border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .toolbar input { flex: 1 1 200px; font: inherit; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  ul#list { list-style: none; padding: 0; margin: 0; }
+  ul#list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 4px; border-bottom: 1px solid var(--border); }
+  ul#list a { color: var(--accent); text-decoration: none; word-break: break-all; }
+  ul#list a:hover { text-decoration: underline; }
+  ul#list time { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+  .empty { color: var(--muted); text-align: center; padding: 16px; }
+  footer { color: var(--muted); font-size: .85rem; text-align: center; margin-top: 32px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Follow-back Checker</h1>
+  <p class="sub">Qui tu suis sur Instagram sans qu'il ou elle te suive en retour.</p>
+
+  <div class="card">
+    <details>
+      <summary>Comment obtenir mes données Instagram ?</summary>
+      <ol>
+        <li>Dans Instagram : <b>Paramètres</b> → <b>Espace comptes</b> → <b>Vos informations et autorisations</b> → <b>Télécharger vos informations</b>.</li>
+        <li>Choisis <b>Télécharger ou transférer des informations</b>, ton compte Instagram, puis <b>Certaines de vos informations</b>.</li>
+        <li>Coche uniquement <b>Followers et suivis</b> (section « Connexions »).</li>
+        <li>Choisis <b>Télécharger sur l'appareil</b>, période <b>Depuis le début</b>, format <b>JSON</b> (important, pas HTML).</li>
+        <li>Valide. Instagram t'envoie un lien par e-mail (quelques minutes à quelques heures). Télécharge le fichier ZIP.</li>
+        <li>Dépose ce ZIP ci-dessous.</li>
+      </ol>
+    </details>
+  </div>
+
+  <div class="card">
+    <div id="drop" role="button" tabindex="0" aria-label="Choisir le fichier ZIP de l'export Instagram">
+      <strong>Dépose ton ZIP Instagram ici</strong>
+      <small>ou clique pour le choisir (tu peux aussi sélectionner directement les fichiers followers_*.json et following.json)</small>
+    </div>
+    <input id="file" type="file" accept=".zip,.json,application/zip,application/json" multiple hidden>
+    <p class="privacy">🔒 Tout est analysé dans ton navigateur. Aucune donnée n'est envoyée sur Internet, aucun mot de passe n'est demandé.</p>
+    <p id="status" role="status"></p>
+  </div>
+
+  <div class="card" id="results" hidden>
+    <div class="stats">
+      <div class="stat"><b id="nFollowing">0</b><span>Abonnements</span></div>
+      <div class="stat"><b id="nFollowers">0</b><span>Abonnés</span></div>
+      <div class="stat"><b id="nNotBack">0</b><span>Ne te suivent pas</span></div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" data-view="notBack" aria-selected="true">Ne me suivent pas en retour</button>
+      <button role="tab" data-view="fans" aria-selected="false">Je ne les suis pas en retour</button>
+      <button role="tab" data-view="mutual" aria-selected="false">Mutuels</button>
+    </div>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Filtrer par nom…" aria-label="Filtrer la liste">
+      <div class="actions">
+        <button id="copy" type="button">Copier</button>
+        <button id="csv" type="button">Exporter CSV</button>
+      </div>
+    </div>
+    <ul id="list"></ul>
+  </div>
+
+  <footer>Outil open source, licence MIT. Non affilié à Instagram ou Meta.</footer>
+</main>
+
+<script id="checker">
+/*!
+ * Follow-back Checker — logique d'analyse (navigateur + Node.js).
+ * Lit l'export officiel Instagram (ZIP ou fichiers JSON) entièrement en local.
+ * Licence MIT.
+ */
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  else root.FollowbackChecker = api;
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  // Accepte "/" et "\" (certains outils Windows écrivent des "\" dans les ZIP).
+  const FOLLOWERS_RE = /(^|[\/\\])followers(_\d+)?\.(json|html)$/i;
+  const FOLLOWING_RE = /(^|[\/\\])following\.(json|html)$/i;
+
+  // ---------------------------------------------------------------------------
+  // Lecture ZIP minimale (sans dépendance) : on ne lit que les fichiers utiles,
+  // par tranches, pour supporter de gros exports sans tout charger en mémoire.
+  // ---------------------------------------------------------------------------
+
+  async function readSlice(blob, start, end) {
+    return new DataView(await blob.slice(start, end).arrayBuffer());
+  }
+
+  function decodeName(view, offset, len, utf8) {
+    const bytes = new Uint8Array(view.buffer, view.byteOffset + offset, len);
+    return new TextDecoder(utf8 ? "utf-8" : "latin1").decode(bytes);
+  }
+
+  async function listZipEntries(blob) {
+    const tailLen = Math.min(blob.size, 22 + 0xffff + 20);
+    const tailStart = blob.size - tailLen;
+    const tail = await readSlice(blob, tailStart, blob.size);
+    let eocd = -1;
+    for (let i = tail.byteLength - 22; i >= 0; i--) {
+      if (tail.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    }
+    if (eocd < 0) throw new Error("Ce fichier n'est pas un ZIP valide.");
+
+    let count = tail.getUint16(eocd + 10, true);
+    let cdSize = tail.getUint32(eocd + 12, true);
+    let cdOffset = tail.getUint32(eocd + 16, true);
+
+    // ZIP64
+    if (cdOffset === 0xffffffff || count === 0xffff || cdSize === 0xffffffff) {
+      const loc = eocd - 20;
+      if (loc < 0 || tail.getUint32(loc, true) !== 0x07064b50) throw new Error("Format ZIP64 non reconnu.");
+      const z64Off = Number(tail.getBigUint64(loc + 8, true));
+      const z64 = await readSlice(blob, z64Off, z64Off + 56);
+      if (z64.getUint32(0, true) !== 0x06064b50) throw new Error("Format ZIP64 non reconnu.");
+      count = Number(z64.getBigUint64(32, true));
+      cdSize = Number(z64.getBigUint64(40, true));
+      cdOffset = Number(z64.getBigUint64(48, true));
+    }
+
+    const cd = await readSlice(blob, cdOffset, cdOffset + cdSize);
+    const entries = [];
+    let p = 0;
+    for (let n = 0; n < count && p + 46 <= cd.byteLength; n++) {
+      if (cd.getUint32(p, true) !== 0x02014b50) break;
+      const flags = cd.getUint16(p + 8, true);
+      const method = cd.getUint16(p + 10, true);
+      let compSize = cd.getUint32(p + 20, true);
+      let size = cd.getUint32(p + 24, true);
+      const nameLen = cd.getUint16(p + 28, true);
+      const extraLen = cd.getUint16(p + 30, true);
+      const commentLen = cd.getUint16(p + 32, true);
+      let localOffset = cd.getUint32(p + 42, true);
+      const name = decodeName(cd, p + 46, nameLen, flags & 0x800);
+
+      // Champ extra ZIP64 (0x0001)
+      let e = p + 46 + nameLen;
+      const eEnd = e + extraLen;
+      while (e + 4 <= eEnd) {
+        const id = cd.getUint16(e, true), len = cd.getUint16(e + 2, true);
+        if (id === 0x0001) {
+          let q = e + 4;
+          if (size === 0xffffffff) { size = Number(cd.getBigUint64(q, true)); q += 8; }
+          if (compSize === 0xffffffff) { compSize = Number(cd.getBigUint64(q, true)); q += 8; }
+          if (localOffset === 0xffffffff) { localOffset = Number(cd.getBigUint64(q, true)); }
+        }
+        e += 4 + len;
+      }
+
+      entries.push({ name, method, compSize, size, localOffset, encrypted: !!(flags & 1) });
+      p += 46 + nameLen + extraLen + commentLen;
+    }
+    return entries;
+  }
+
+  async function readZipEntryText(blob, entry) {
+    if (entry.encrypted) throw new Error("Le ZIP est chiffré.");
+    const lh = await readSlice(blob, entry.localOffset, entry.localOffset + 30);
+    if (lh.getUint32(0, true) !== 0x04034b50) throw new Error("ZIP corrompu (" + entry.name + ").");
+    const dataStart = entry.localOffset + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+    const data = blob.slice(dataStart, dataStart + entry.compSize);
+
+    if (entry.method === 0) return await data.text();
+    if (entry.method === 8) {
+      if (typeof DecompressionStream === "undefined") {
+        throw new Error("Navigateur trop ancien pour lire le ZIP. Mets-le à jour, ou décompresse le ZIP et sélectionne les fichiers JSON.");
+      }
+      const stream = data.stream().pipeThrough(new DecompressionStream("deflate-raw"));
+      return await new Response(stream).text();
+    }
+    throw new Error("Méthode de compression non supportée (" + entry.method + ").");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Collecte des fichiers JSON utiles (depuis un ZIP ou des fichiers choisis).
+  // Retourne [{ name, text }].
+  // ---------------------------------------------------------------------------
+
+  function isRelevant(name) {
+    return FOLLOWERS_RE.test(name) || FOLLOWING_RE.test(name);
+  }
+
+  async function collectJsonFiles(files) {
+    const out = [];
+    for (const f of files) {
+      const name = f.webkitRelativePath || f.name;
+      if (/\.zip$/i.test(name) || f.type === "application/zip" || f.type === "application/x-zip-compressed") {
+        const entries = await listZipEntries(f);
+        for (const en of entries) {
+          if (isRelevant(en.name)) out.push({ name: en.name, text: await readZipEntryText(f, en) });
+        }
+      } else if (isRelevant(name)) {
+        out.push({ name, text: await f.text() });
+      }
+    }
+    return out;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Parsing des JSON Instagram. Le format a varié selon les années :
+  //  - followers_1.json : [ { title, string_list_data: [{ href, value, timestamp }] } ]
+  //  - following.json   : { relationships_following: [ { title, string_list_data: [{ href, timestamp }] } ] }
+  //    (dans les exports récents, le pseudo est dans "title" et "value" est absent)
+  // ---------------------------------------------------------------------------
+
+  function usernameFromHref(href) {
+    if (!href) return "";
+    const m = String(href).match(/instagram\.com\/(?:_u\/)?([^/?#]+)/i);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+
+  function extractUsers(data) {
+    let items = [];
+    if (Array.isArray(data)) items = data;
+    else if (data && typeof data === "object") {
+      for (const v of Object.values(data)) if (Array.isArray(v)) items = items.concat(v);
+    }
+    const users = [];
+    for (const it of items) {
+      if (!it || typeof it !== "object") continue;
+      const s = (Array.isArray(it.string_list_data) && it.string_list_data[0]) || {};
+      const username = (s.value || it.title || usernameFromHref(s.href) || "").trim().replace(/^@/, "").toLowerCase();
+      if (username) users.push({ username, timestamp: Number(s.timestamp) || 0 });
+    }
+    return users;
+  }
+
+  function dedupe(users) {
+    const map = new Map();
+    for (const u of users) if (!map.has(u.username)) map.set(u.username, u);
+    return [...map.values()];
+  }
+
+  function analyze(files) {
+    const followerFiles = files.filter((f) => FOLLOWERS_RE.test(f.name));
+    const followingFiles = files.filter((f) => FOLLOWING_RE.test(f.name));
+
+    if ([...followerFiles, ...followingFiles].some((f) => /\.html$/i.test(f.name))) {
+      throw new Error("Ton export est au format HTML. Refais la demande en choisissant le format JSON.");
+    }
+    if (!followerFiles.length && !followingFiles.length) {
+      throw new Error("Aucun fichier followers/following trouvé. Vérifie que tu as bien coché « Followers et suivis » lors de l'export.");
+    }
+    if (!followerFiles.length) throw new Error("Fichier followers_1.json introuvable dans l'export.");
+    if (!followingFiles.length) throw new Error("Fichier following.json introuvable dans l'export.");
+
+    const parse = (f) => {
+      try { return extractUsers(JSON.parse(f.text)); }
+      catch { throw new Error("Impossible de lire " + f.name + " (JSON invalide)."); }
+    };
+
+    const followers = dedupe(followerFiles.flatMap(parse));
+    const following = dedupe(followingFiles.flatMap(parse));
+    const followerSet = new Set(followers.map((u) => u.username));
+    const followingSet = new Set(following.map((u) => u.username));
+    const byName = (a, b) => a.username.localeCompare(b.username);
+
+    return {
+      followers,
+      following,
+      notBack: following.filter((u) => !followerSet.has(u.username)).sort(byName),
+      fans: followers.filter((u) => !followingSet.has(u.username)).sort(byName),
+      mutual: following.filter((u) => followerSet.has(u.username)).sort(byName),
+    };
+  }
+
+  return { collectJsonFiles, analyze, extractUsers, listZipEntries, readZipEntryText };
+});
+</script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const drop = $("drop"), input = $("file"), status = $("status");
+  let result = null, view = "notBack";
+
+  const setStatus = (msg, cls = "") => { status.textContent = msg; status.className = cls; };
+
+  async function handle(files) {
+    files = [...files];
+    if (!files.length) return;
+    setStatus("Analyse en cours…");
+    try {
+      const entries = await FollowbackChecker.collectJsonFiles(files);
+      result = FollowbackChecker.analyze(entries);
+      setStatus("Analyse terminée ✔", "ok");
+      render();
+    } catch (e) {
+      console.error(e);
+      $("results").hidden = true;
+      setStatus(e.message || String(e), "err");
+    }
+  }
+
+  function render() {
+    $("results").hidden = false;
+    $("nFollowing").textContent = result.following.length;
+    $("nFollowers").textContent = result.followers.length;
+    $("nNotBack").textContent = result.notBack.length;
+    const q = $("search").value.trim().toLowerCase();
+    const items = result[view].filter((u) => u.username.includes(q));
+    const list = $("list");
+    list.replaceChildren();
+    if (!items.length) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = q ? "Aucun résultat pour ce filtre." : "Personne dans cette liste 🎉";
+      list.append(li);
+      return;
+    }
+    for (const u of items) {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = "https://www.instagram.com/" + encodeURIComponent(u.username) + "/";
+      a.target = "_blank"; a.rel = "noopener noreferrer";
+      a.textContent = "@" + u.username;
+      li.append(a);
+      if (u.timestamp) {
+        const t = document.createElement("time");
+        const d = new Date(u.timestamp * 1000);
+        t.dateTime = d.toISOString();
+        t.textContent = (view === "fans" ? "te suit depuis le " : "suivi depuis le ") + d.toLocaleDateString("fr-FR");
+        li.append(t);
+      }
+      list.append(li);
+    }
+  }
+
+  drop.addEventListener("click", () => input.click());
+  drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  input.addEventListener("change", () => { handle(input.files); input.value = ""; });
+  ["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (e) => handle(e.dataTransfer.files));
+
+  document.querySelectorAll('[role="tab"]').forEach((b) => b.addEventListener("click", () => {
+    view = b.dataset.view;
+    document.querySelectorAll('[role="tab"]').forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+    render();
+  }));
+  $("search").addEventListener("input", render);
+
+  $("copy").addEventListener("click", async () => {
+    const text = result[view].map((u) => "@" + u.username).join("\n");
+    try { await navigator.clipboard.writeText(text); setStatus("Liste copiée dans le presse-papiers ✔", "ok"); }
+    catch { setStatus("Copie impossible dans ce navigateur.", "err"); }
+  });
+  $("csv").addEventListener("click", () => {
+    const rows = [["username", "profil", "date"]].concat(result[view].map((u) => [
+      u.username, "https://www.instagram.com/" + u.username + "/",
+      u.timestamp ? new Date(u.timestamp * 1000).toISOString().slice(0, 10) : ""]));
+    const csv = rows.map((r) => r.map((c) => '"' + String(c).replace(/"/g, '""') + '"').join(",")).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+    a.download = "instagram-" + view + ".csv";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+})();
+</script>
+</body>
+</html>
