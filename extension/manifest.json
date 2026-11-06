@@ -1,11 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Follow-back Checker",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Liste les comptes Instagram que tu suis et qui ne te suivent pas en retour. Tout reste dans ton navigateur.",
   "permissions": ["scripting"],
   "host_permissions": ["https://www.instagram.com/*"],
-  "background": { "service_worker": "background.js" },
+  "background": {
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
+  },
   "action": {
     "default_title": "Follow-back Checker",
     "default_icon": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
@@ -13,5 +16,15 @@
   "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'none'"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "follow-back-checker@rayane2l",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": { "required": ["none"] }
+    },
+    "gecko_android": {
+      "strict_min_version": "128.0"
+    }
   }
 }

@@ -52,3 +52,16 @@ details summary { cursor: pointer; font-weight: 600; }
 details ul { padding-left: 20px; margin-bottom: 0; }
 footer { color: var(--muted); font-size: .85rem; text-align: center; margin-top: 32px; }
 [hidden] { display: none !important; }
+
+/* Téléphone */
+@media (max-width: 520px) {
+  main { padding: 20px 12px 48px; }
+  h1 { font-size: 1.35rem; }
+  .card { padding: 14px; }
+  .row button { flex: 1 1 auto; }
+  .stat b { font-size: 1.2rem; }
+  .stat span { font-size: .72rem; }
+  .tabs button, button.secondary { padding: 6px 10px; font-size: .85rem; }
+  ul#list li { flex-wrap: wrap; gap: 2px 8px; }
+  ul#list .name { text-align: left; flex-basis: 100%; }
+}

@@ -15,7 +15,7 @@ Il existe deux façons de l'utiliser :
 
 ## Méthode 1 : l'extension
 
-Elle fonctionne avec **Google Chrome**, **Microsoft Edge** et **Brave**, sur ordinateur (pas sur téléphone).
+Sur ordinateur, elle fonctionne avec **Google Chrome**, **Microsoft Edge** et **Brave** (instructions ci-dessous). Sur **téléphone Android**, elle fonctionne avec **Firefox** : voir [Sur téléphone Android](#sur-téléphone-android-firefox). Elle ne fonctionne pas sur iPhone.
 
 ### Étape 1 : télécharger l'extension
 
@@ -78,6 +78,19 @@ Tu peux cliquer sur un pseudo pour ouvrir son profil, copier la liste ou l'expor
 2. Remplace le contenu de ton ancien dossier `follow-back-checker-extension` par celui du nouveau.
 3. Dans `chrome://extensions`, clique sur la flèche circulaire de « Follow-back Checker ».
 
+### Sur téléphone Android (Firefox)
+
+Chrome pour Android n'accepte pas les extensions, mais Firefox, si.
+
+1. Installe **Firefox** depuis le Play Store.
+2. Dans Firefox, va sur [instagram.com](https://www.instagram.com) et connecte-toi. Être connecté·e dans l'application Instagram ne suffit pas : il faut l'être dans Firefox.
+3. Toujours dans Firefox, ouvre la page de l'extension : **[Follow-back Checker sur le site des modules Firefox](https://addons.mozilla.org/fr/firefox/addon/follow-back-checker/)**.
+4. Appuie sur **Ajouter à Firefox**, puis sur **Ajouter**.
+5. Pour l'utiliser : appuie sur le menu de Firefox (les trois points), puis **Extensions**, puis **Follow-back Checker**. La page de l'extension s'ouvre.
+6. Tape ton pseudo et appuie sur **Analyser**. La première fois, Firefox te demande d'autoriser l'accès à instagram.com : accepte.
+
+La même page fonctionne aussi avec Firefox sur ordinateur.
+
 ---
 
 ## Méthode 2 : la page « export officiel » (sans risque)
@@ -139,6 +152,8 @@ git archive -o follow-back-checker-extension.zip HEAD:extension
 cp index.html follow-back-checker-export.html
 gh release create v1.0.1 follow-back-checker-extension.zip follow-back-checker-export.html --title "v1.0.1"
 ```
+
+**Firefox.** Le même ZIP fonctionne dans Firefox 128 ou plus (ordinateur et Android) : le manifest déclare à la fois `service_worker` (Chrome) et `scripts` (Firefox), et un identifiant `browser_specific_settings.gecko`. Dans Firefox, l'accès à instagram.com est demandé au premier clic sur « Analyser », et les requêtes passent par `content.fetch()` pour partir au nom de la page. Publication sur AMO : voir [docs/publication-firefox.md](docs/publication-firefox.md).
 
 **Publication.** Une fois le dépôt public, GitHub Pages (Settings, Pages, branche `main`) peut héberger `index.html`. Pour éviter le mode développeur, l'extension peut être publiée sur le Chrome Web Store, mais elle risque d'y être refusée parce qu'elle utilise l'API interne d'Instagram.
 

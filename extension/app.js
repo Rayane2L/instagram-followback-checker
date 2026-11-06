@@ -18,7 +18,11 @@
   // Cette fonction est injectée telle quelle dans l'onglet Instagram.
   async function fetchInPage(url, asText) {
     try {
-      const r = await fetch(url, {
+      // Firefox : content.fetch() envoie la requête au nom de la page (cookies de session inclus).
+      // Chrome : le fetch du script injecté se comporte déjà ainsi.
+      const doFetch = (typeof content === "object" && content && typeof content.fetch === "function")
+        ? content.fetch.bind(content) : fetch;
+      const r = await doFetch(url, {
         credentials: "include",
         headers: asText ? {} : { "X-IG-App-ID": "936619743392459", "X-Requested-With": "XMLHttpRequest" },
       });
@@ -88,8 +92,18 @@
     goBtn.disabled = running; input.disabled = running; stopBtn.hidden = !running;
   }
 
+  const IG_ORIGINS = { origins: ["https://www.instagram.com/*"] };
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    // Firefox considère l'accès à un site comme facultatif : on le demande ici.
+    // L'appel doit être le premier « await » pour compter comme une action de l'utilisateur.
+    let granted = true;
+    try { granted = await chrome.permissions.request(IG_ORIGINS); } catch { granted = true; }
+    if (!granted) {
+      setStatus("L'extension a besoin d'accéder à instagram.com pour lire tes listes. Clique sur Analyser et accepte l'autorisation.", "err");
+      return;
+    }
     controller = new AbortController();
     setRunning(true);
     setStatus("");
@@ -106,7 +120,7 @@
       console.error(err);
       let msg = err instanceof CheckerError ? err.message : "Erreur : " + (err.message || err);
       if (/Cannot access|permission/i.test(String(err.message))) {
-        msg = "L'extension n'a pas accès à instagram.com. Vérifie ses autorisations dans chrome://extensions.";
+        msg = "L'extension n'a pas accès à instagram.com. Vérifie ses autorisations dans les réglages des extensions du navigateur.";
       }
       setStatus(msg, "err");
     } finally {
